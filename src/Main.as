@@ -130,10 +130,10 @@ package
 			{
 				timerPaused = false;
 				cronometer.start();
-				for each (var item:Gear in gears)
-				{
-					item.startRotating();
-				}
+				//for each (var item:Gear in gears)
+				//{
+					//item.startRotating();
+				//}
 				addEventListener(Event.ENTER_FRAME, refreshCron);
 			} 
 			else 
@@ -146,7 +146,11 @@ package
 		
 		private function refreshCron(e:Event):void 
 		{
-			cronometro.time.text = (cronometer.read()/1000).toFixed(1);
+			cronometro.time.text = (cronometer.read() / 1000).toFixed(1);
+			for each (var item:Gear in gears)
+			{
+				item.update();
+			}
 		}
 		
 		private function resetaCronometro(e:MouseEvent):void 
@@ -159,7 +163,7 @@ package
 			
 			for each (var item:Gear in gears)
 			{
-				item.stopRotating();
+				//item.stopRotating();
 				item.update();
 			}
 			
