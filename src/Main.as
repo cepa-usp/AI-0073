@@ -1,6 +1,7 @@
 package  
 {
 	import BaseAssets.BaseMain;
+	import cepa.utils.Cronometer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -12,15 +13,21 @@ package
 	 */
 	public class Main extends BaseMain
 	{
+		private var gearsLayer:Sprite;
+		
+		private var cronometer:Cronometer;
 		private var timerPaused:Boolean;
-		private var timerStart:Number;
-		private var timeElapsed:Number;
 		
 		private var raiosGrandes:Array;
 		private var raiosPequenos:Array;
+		private var raiosGrandesSpr:Array;
+		private var raiosPequenosSpr:Array;
 		private var omegasGrandes:Array;
-		private var omegaGrande:Number;
-		private var omegaPequeno:Number;
+		
+		private var gears:Vector.<Gear>;
+		private var nGears:int;
+		private var maxGears:int = 4;
+		private var minGears:int = 2;
 		
 		public function Main() 
 		{
@@ -41,50 +48,75 @@ package
 		
 		private function initVariables():void
 		{
-			raiosGrandes = [100, 110, 120, 130, 140, 150];
-			raiosPequenos = [20, 25, 30, 35, 40];
-			omegasGrandes = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
+			raiosGrandes = [[100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
+			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40, 10]];
+			
+			raiosGrandesSpr = [new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
+			raiosPequenosSpr = [new Gear20(), new Gear25(), new Gear30(), new Gear35(), new Gear40()];
+			
+			//omegasGrandes = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
+			omegasGrandes = [3, 3.5, 4, 4.5, 5, 5.5, 6];
+			
+			cronometer = new Cronometer();
+			timerPaused = true;
+			gears = new Vector.<Gear>();
+			
+			gearsLayer = new Sprite();
+			addChild(gearsLayer);
 		}
 		
 		private function preparaBolinhas():void
 		{
-			var raioGrande:int = Math.floor(Math.random() * raiosGrandes.length);
-			var raioPequeno:int = Math.floor(Math.random() * raiosPequenos.length);
+			if (gears.length > 0) {
+				for (var i:int = gears.length - 1; i >= 0 ; i--) 
+				{
+					gearsLayer.removeChild(gears[i]);
+				}
+				
+				gears.splice(0, gears.length);
+			}
 			
-			bolaGrande.rotation = 0;
-			bolaPequena.rotation = 0;
+			var rP:Array = [];
+			var rPSpr:Array = [];
+			for (i = 0; i < raiosPequenos.length; i++) 
+			{
+				rP.push(raiosPequenos[i]);
+				rPSpr.push(raiosPequenosSpr[i]);
+			}
 			
-			bolaGrande.width = 2 * raiosGrandes[raioGrande];
-			bolaGrande.height = 2 * raiosGrandes[raioGrande];
-			bolaPequena.width = 2 * raiosPequenos[raioPequeno];
-			bolaPequena.height = 2 * raiosPequenos[raioPequeno];
+			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			var nSort:int;
 			
-			bolaPequena.x = bolaGrande.x + raiosGrandes[raioGrande] + raiosPequenos[raioPequeno];
-			//bolaPequena.x = bolaGrande.x + bolaGrande.width / 2 + bolaPequena.width / 2;
-			rPequeno.x = bolaPequena.x - rPequeno.width / 2;
+			for (i = 0; i < nGears; i++)
+			{
+				if (i == 0) {//Sorteia raio grande
+					nSort = Math.floor(Math.random() * raiosGrandes.length);
+					gears.push(new Gear(raiosGrandesSpr[nSort], cronometer, raiosGrandes[nSort][0], raiosGrandes[nSort][1], omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]));
+				}else {//sorteia raios(s) pequeno(s)
+					nSort = Math.floor(Math.random() * rP.length);
+					gears.push(new Gear(rPSpr[nSort], cronometer, rP[nSort][0], rP[nSort][1], gears[i - 1].omega * (gears[i - 1].raio / rP[nSort][0]) * -1));
+					rP.splice(nSort, 1);
+					rPSpr.splice(nSort, 1);
+				}
+				gearsLayer.addChild(gears[gears.length - 1]);
+			}
 			
-			omegaGrande = omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)];
-			omegaPequeno = omegaGrande * raiosGrandes[raioGrande] / raiosPequenos[raioPequeno];
+			for (i = 0; i < nGears; i++)
+			{
+				if (i == 0) {
+					gears[i].x = (Math.random() * 100) + 200;
+					gears[i].y = (Math.random() * 100) + 200;
+				}else {
+					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					gears[i].x = gears[i-1].x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180);
+					gears[i].y = gears[i-1].y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180);
+				}
+			}
 			
-			rGrande.text = "R = " + String(raiosGrandes[raioGrande]);
-			rPequeno.text = "r = " + String(raiosPequenos[raioPequeno]);
-		}
-		
-		private function rodaBolinhas():void
-		{
-			//var tempo:Number = Number(cronometro.time.text.replace("s", "").replace(",","."));
-			//trace(tempo);
-			var rotationGrande:Number = timeElapsed / 1000 * omegaGrande * 180/Math.PI % 360;
-			var rotationPequeno:Number = timeElapsed / 1000 * omegaPequeno * 180 / Math.PI % 360;
-			
-			bolaGrande.rotation = rotationGrande;
-			bolaPequena.rotation = -rotationPequeno;
 		}
 		
 		private function initCronometro():void
 		{
-			timerPaused = true;
-			
 			cronometro.reset.buttonMode = true;
 			cronometro.start.buttonMode = true;
 			
@@ -96,35 +128,49 @@ package
 		{
 			if (timerPaused) 
 			{
-				timerStart = getTimer();
 				timerPaused = false;
-				addEventListener(Event.ENTER_FRAME, enterFrameCronometro);
+				cronometer.start();
+				for each (var item:Gear in gears)
+				{
+					item.startRotating();
+				}
+				addEventListener(Event.ENTER_FRAME, refreshCron);
 			} 
 			else 
 			{
 				timerPaused = true;
-				removeEventListener(Event.ENTER_FRAME, enterFrameCronometro);
+				cronometer.pause();
+				removeEventListener(Event.ENTER_FRAME, refreshCron);
 			}
+		}
+		
+		private function refreshCron(e:Event):void 
+		{
+			cronometro.time.text = (cronometer.read()/1000).toFixed(1);
 		}
 		
 		private function resetaCronometro(e:MouseEvent):void 
 		{
-			timeElapsed = 0;
+			
+			removeEventListener(Event.ENTER_FRAME, refreshCron);
+			
+			cronometer.stop();
+			cronometer.reset();
+			
+			for each (var item:Gear in gears)
+			{
+				item.stopRotating();
+				item.update();
+			}
+			
 			cronometro.time.text = "0s";
 			timerPaused = true;
-			removeEventListener(Event.ENTER_FRAME, enterFrameCronometro);
-		}
-		
-		private function enterFrameCronometro(e:Event):void 
-		{
-			timeElapsed = (getTimer() - timerStart);
-			cronometro.time.text = (timeElapsed / 1000).toFixed(1).replace(".", ",") + "s";
-			rodaBolinhas();
+			
 		}
 		
 		private function addListeners():void
 		{
-			//resetButton.addEventListener(MouseEvent.CLICK, reset);
+			
 		}
 		
 		override public function reset(e:MouseEvent = null):void
