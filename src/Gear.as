@@ -3,6 +3,7 @@ package
 	import cepa.utils.Cronometer;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.geom.Point;
 	/**
 	 * ...
 	 * @author Alexandre
@@ -13,6 +14,8 @@ package
 		private var _raio:Number;
 		private var _omega:Number = 0;
 		private var _rotacao:Number;
+		public var posFinal:Point;
+		public var posInicial:Point;
 		
 		private var gearSpr:Sprite;
 		
@@ -20,6 +23,7 @@ package
 		
 		public function Gear(spr:Sprite, cron:Cronometer, raio:Number, nDentes:int, omega:Number) 
 		{
+			this.mouseChildren = false;
 			//gearSpr = gearSprStage;
 			gearSpr = spr;
 			addChild(gearSpr);
@@ -90,6 +94,12 @@ package
 		public function set nDentes(value:int):void 
 		{
 			_nDentes = value;
+		}
+		
+		public function moveToInicial():void
+		{
+			this.x = posInicial.x;
+			this.y = posInicial.y;
 		}
 		
 	}
