@@ -76,6 +76,11 @@ package
 		
 		private function preparaBolinhas():void
 		{
+			for each (var item:Gear in gears)
+			{
+				item.update();
+			}
+			
 			if (gears.length > 0) {
 				for (var i:int = gears.length - 1; i >= 0 ; i--) 
 				{
@@ -242,11 +247,11 @@ package
 			cronometer.stop();
 			cronometer.reset();
 			
-			for each (var item:Gear in gears)
-			{
+			//for each (var item:Gear in gears)
+			//{
 				//item.stopRotating();
-				item.update();
-			}
+				//item.update();
+			//}
 			
 			cronometro.time.text = "0s";
 			timerPaused = true;
