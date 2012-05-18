@@ -47,8 +47,8 @@ package
 		
 		private function rotating(e:Event):void 
 		{
-			_rotacao = internalTimer.read() / 1000 * omega * 180 / Math.PI % 360;
-			gearSpr.rotation = rotacao;
+			_rotacao = internalTimer.read() / 1000 * omega + rotacaoInicial;
+			gearSpr.rotation = rotacao * 180 / Math.PI % 360;
 		}
 		
 		public function update():void
