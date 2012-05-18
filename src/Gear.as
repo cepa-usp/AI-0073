@@ -16,6 +16,7 @@ package
 		private var _rotacao:Number;
 		public var posFinal:Point;
 		public var posInicial:Point;
+		public var rotacaoInicial:Number = 0;
 		
 		private var gearSpr:Sprite;
 		

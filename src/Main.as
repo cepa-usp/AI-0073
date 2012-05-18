@@ -53,10 +53,10 @@ package
 		
 		private function initVariables():void
 		{
-			raiosGrandes = [[100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
-			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40, 10]];
+			raiosGrandes = [[80.80, 20], [100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
+			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40.4, 10]];
 			
-			raiosGrandesSpr = [new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
+			raiosGrandesSpr = [new Gear8085(), new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
 			raiosPequenosSpr = [new Gear20(), new Gear25(), new Gear30(), new Gear35(), new Gear40()];
 			
 			//omegasGrandes = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
@@ -98,16 +98,19 @@ package
 				rPSpr.push(raiosPequenosSpr[i]);
 			}
 			
-			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			//nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			nGears = 2;
 			var nSort:int;
 			
 			for (i = 0; i < nGears; i++)
 			{
 				if (i == 0) {//Sorteia raio grande
-					nSort = Math.floor(Math.random() * raiosGrandes.length);
-					gears.push(new Gear(raiosGrandesSpr[nSort], cronometer, raiosGrandes[nSort][0], raiosGrandes[nSort][1], omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]));
+					//nSort = Math.floor(Math.random() * raiosGrandes.length);
+					nSort = 0;
+					gears.push(new Gear(raiosGrandesSpr[nSort], cronometer, raiosGrandes[nSort][0], raiosGrandes[nSort][1], /*omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]*/0.5));
 				}else {//sorteia raios(s) pequeno(s)
-					nSort = Math.floor(Math.random() * rP.length);
+					//nSort = Math.floor(Math.random() * rP.length);
+					nSort = 4;
 					gears.push(new Gear(rPSpr[nSort], cronometer, rP[nSort][0], rP[nSort][1], gears[i - 1].omega * (gears[i - 1].raio / rP[nSort][0]) * -1));
 					rP.splice(nSort, 1);
 					rPSpr.splice(nSort, 1);
