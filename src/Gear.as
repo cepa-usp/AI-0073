@@ -14,51 +14,27 @@ package
 		private var _raio:Number;
 		private var _omega:Number = 0;
 		private var _rotacao:Number;
+		
 		public var posFinal:Point;
 		public var posInicial:Point;
-		public var rotacaoInicial:Number = 0;
+		
+		private var _rotacaoInicial:Number = 0;
 		
 		private var gearSpr:Sprite;
 		
-		private var internalTimer:Cronometer;
-		
-		public function Gear(spr:Sprite, cron:Cronometer, raio:Number, nDentes:int, omega:Number) 
+		public function Gear(nDentes:int, raio:Number, spr:Sprite) 
 		{
 			this.mouseChildren = false;
-			//gearSpr = gearSprStage;
+			_nDentes = nDentes;
+			_raio = raio;
 			gearSpr = spr;
 			addChild(gearSpr);
-			
-			internalTimer = cron;
-			_raio = raio;
-			_nDentes = nDentes;
-			_omega = omega;
 		}
 		
-		public function setCron(cron:Cronometer):void
+		public function update(time:Number):void
 		{
-			internalTimer = cron;
-		}
-		
-		public function startRotating():void
-		{
-			addEventListener(Event.ENTER_FRAME, rotating);
-		}
-		
-		private function rotating(e:Event):void 
-		{
-			_rotacao = internalTimer.read() / 1000 * omega + rotacaoInicial;
+			_rotacao = time * omega + _rotacaoInicial;
 			gearSpr.rotation = rotacao * 180 / Math.PI % 360;
-		}
-		
-		public function update():void
-		{
-			rotating(null);
-		}
-		
-		public function stopRotating():void
-		{
-			removeEventListener(Event.ENTER_FRAME, rotating);
 		}
 		
 		public function get raio():Number 
@@ -95,6 +71,12 @@ package
 		public function set nDentes(value:int):void 
 		{
 			_nDentes = value;
+		}
+		
+		public function set rotacaoInicial(value:Number):void 
+		{
+			_rotacaoInicial = value;
+			gearSpr.rotation = value * 180 / Math.PI % 360;;
 		}
 		
 		public function moveToInicial():void
