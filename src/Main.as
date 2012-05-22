@@ -21,6 +21,7 @@ package
 		private var gearsLayer:Sprite;
 		
 		private var cronometer:Cronometer;
+		private var cronometerGear:Cronometer;
 		private var timerPaused:Boolean;
 		
 		private var raiosGrandes:Array;
@@ -53,16 +54,17 @@ package
 		
 		private function initVariables():void
 		{
-			raiosGrandes = [[100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
-			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40, 10]];
+			raiosGrandes = [[80.80, 20], [100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
+			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40.4, 10]];
 			
-			raiosGrandesSpr = [new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
+			raiosGrandesSpr = [new Gear8085(), new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
 			raiosPequenosSpr = [new Gear20(), new Gear25(), new Gear30(), new Gear35(), new Gear40()];
 			
 			//omegasGrandes = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
 			omegasGrandes = [3, 3.5, 4, 4.5, 5, 5.5, 6];
 			
 			cronometer = new Cronometer();
+			cronometerGear = new Cronometer();
 			timerPaused = true;
 			gears = new Vector.<Gear>();
 			
@@ -98,17 +100,20 @@ package
 				rPSpr.push(raiosPequenosSpr[i]);
 			}
 			
-			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			//nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			nGears = 2;
 			var nSort:int;
 			
 			for (i = 0; i < nGears; i++)
 			{
 				if (i == 0) {//Sorteia raio grande
-					nSort = Math.floor(Math.random() * raiosGrandes.length);
-					gears.push(new Gear(raiosGrandesSpr[nSort], cronometer, raiosGrandes[nSort][0], raiosGrandes[nSort][1], omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]));
+					//nSort = Math.floor(Math.random() * raiosGrandes.length);
+					nSort = 0;
+					gears.push(new Gear(raiosGrandesSpr[nSort], cronometerGear, raiosGrandes[nSort][0], raiosGrandes[nSort][1], /*omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]*/0.5));
 				}else {//sorteia raios(s) pequeno(s)
-					nSort = Math.floor(Math.random() * rP.length);
-					gears.push(new Gear(rPSpr[nSort], cronometer, rP[nSort][0], rP[nSort][1], gears[i - 1].omega * (gears[i - 1].raio / rP[nSort][0]) * -1));
+					//nSort = Math.floor(Math.random() * rP.length);
+					nSort = 4;
+					gears.push(new Gear(rPSpr[nSort], cronometerGear, rP[nSort][0], rP[nSort][1], gears[i - 1].omega * (gears[i - 1].raio / rP[nSort][0]) * -1));
 					rP.splice(nSort, 1);
 					rPSpr.splice(nSort, 1);
 				}
@@ -184,13 +189,16 @@ package
 				gears[i].posInicial = new Point(posX, posY);
 				gears[i].moveToInicial();
 				
-				Actuate.tween(gears[i], 0.5, { x: gears[i].posFinal.x, y: gears[i].posFinal.y } ).ease(Cubic.easeOut).delay(delay);
+				if ( i == nGears - 1) Actuate.tween(gears[i], 0.5, { x: gears[i].posFinal.x, y: gears[i].posFinal.y } ).ease(Cubic.easeOut).delay(delay).onComplete(startAnimation);
+				else Actuate.tween(gears[i], 0.5, { x: gears[i].posFinal.x, y: gears[i].posFinal.y } ).ease(Cubic.easeOut).delay(delay);
 				delay += 0.1;
 			}
 		}
 		
 		private function animatedExit():void
 		{
+			stopAnimation();
+			
 			var delay:Number = 0;
 			for (var i:int = nGears - 1; i >= 0; i--)
 			{
@@ -199,6 +207,27 @@ package
 				
 				delay += 0.1;
 			}
+		}
+		
+		private function startAnimation():void
+		{
+			cronometerGear.start();
+			stage.addEventListener(Event.ENTER_FRAME, updateGears);
+		}
+		
+		private function updateGears(e:Event):void 
+		{
+			for each (var item:Gear in gears)
+			{
+				item.update();
+			}
+		}
+		
+		private function stopAnimation():void
+		{
+			stage.removeEventListener(Event.ENTER_FRAME, updateGears);
+			cronometerGear.stop();
+			cronometerGear.reset();
 		}
 		
 		private function initCronometro():void
@@ -216,10 +245,6 @@ package
 			{
 				timerPaused = false;
 				cronometer.start();
-				//for each (var item:Gear in gears)
-				//{
-					//item.startRotating();
-				//}
 				addEventListener(Event.ENTER_FRAME, refreshCron);
 			} 
 			else 
@@ -233,10 +258,6 @@ package
 		private function refreshCron(e:Event):void 
 		{
 			cronometro.time.text = (cronometer.read() / 1000).toFixed(1);
-			for each (var item:Gear in gears)
-			{
-				item.update();
-			}
 		}
 		
 		private function resetaCronometro(e:MouseEvent):void 
@@ -247,15 +268,8 @@ package
 			cronometer.stop();
 			cronometer.reset();
 			
-			//for each (var item:Gear in gears)
-			//{
-				//item.stopRotating();
-				//item.update();
-			//}
-			
 			cronometro.time.text = "0s";
 			timerPaused = true;
-			
 		}
 		
 		private function setInfo(e:MouseEvent):void 
@@ -284,7 +298,7 @@ package
 					setInfoMsg("Reinicia a atividade.");
 					break;
 				case "Btn_CC":
-					setInfoMsg("Liçensa e créditos.");
+					setInfoMsg("Licença e créditos.");
 					break;
 				case "Gear":
 					setInfoMsg("Engrenagem de raio " + String(Gear(e.target).raio) + " unidades de comprimento.");
@@ -318,7 +332,6 @@ package
 		override public function reset(e:MouseEvent = null):void
 		{
 			resetaCronometro(null);
-			//preparaBolinhas();
 			animatedExit();
 		}
 		
