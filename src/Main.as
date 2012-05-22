@@ -109,6 +109,7 @@ package
 				if (i == 0) {//Sorteia raio grande
 					//nSort = Math.floor(Math.random() * raiosGrandes.length);
 					nSort = 0;
+					//gears.push(new Gear(raiosGrandesSpr[nSort], cronometerGear, raiosGrandes[nSort][0], raiosGrandes[nSort][1], omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]));
 					gears.push(new Gear(raiosGrandesSpr[nSort], cronometerGear, raiosGrandes[nSort][0], raiosGrandes[nSort][1], /*omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]*/0.5));
 				}else {//sorteia raios(s) pequeno(s)
 					//nSort = Math.floor(Math.random() * rP.length);
@@ -119,21 +120,6 @@ package
 				}
 				gearsLayer.addChild(gears[gears.length - 1]);
 			}
-			
-			/*
-			for (i = 0; i < nGears; i++)
-			{
-				if (i == 0) {
-					gears[i].x = (Math.random() * 100) + 200;
-					gears[i].y = (Math.random() * 100) + 200;
-				}else {
-					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					gears[i].x = gears[i-1].x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180);
-					gears[i].y = gears[i-1].y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180);
-				}
-			}
-			*/
-			
 			animatedEntrance();
 		}
 		
@@ -165,25 +151,15 @@ package
 							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
 						);
+						posX = 800;
 					}else {
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
 						);
+						posX = -100;
 					}
-					
-					if (i == 1) {
-						posX = (left ? 700 : 0);
-						posY =  - 100;
-					}
-					if (i == 2) {
-						posX = (left ? 800: -100);
-						posY = (angle < 0 ? 0 : 500);
-					}
-					if (i == 3) {
-						posX = (left ? 700 : 0);
-						posY = 600;
-					}
+					posY = (angle < 0 ? 0 : 500);
 				}
 				
 				gears[i].posInicial = new Point(posX, posY);
