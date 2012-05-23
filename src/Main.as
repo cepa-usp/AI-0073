@@ -83,8 +83,10 @@ package
 		
 		private function initGearsDentes():void
 		{
-			nDentesSmall = [8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
-			nDentesBig = [12, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36];
+			//nDentesSmall = [8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+			//nDentesBig = [12, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36];
+			nDentesSmall = [10, 15, 20];
+			nDentesBig = [25, 30, 35];
 		}
 		
 		private function preparaBolinhas():void
@@ -107,26 +109,30 @@ package
 			for (i = 0; i < nGears; i++)
 			{
 				if (i == 0) {//Sorteia raio grande
-					//nSort = Math.floor(Math.random() * nDentesBig.length);
-					nSort = 0;
+					nSort = Math.floor(Math.random() * nDentesBig.length);
+					//nSort = 0;
 					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
-					bGear.omega = 1;
+					bGear.omega = Math.random() * 2 + 0.2;
+					//bGear.omega = omegas[Math.floor(Math.random() * omegas.length)];
+					//bGear.omega = 1;
+					bGear.scaleX = bGear.scaleY = 1.3;
 					gears.push(bGear);
 				}else {//sorteia raios(s) pequeno(s)
-					//nSort = Math.floor(Math.random() * nDentesSmall.length);
-					nSort = 0;
+					nSort = Math.floor(Math.random() * nDentesSmall.length);
+					//nSort = 0;
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
 					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
+					sGear.scaleX = sGear.scaleY = 1.3;
 					gears.push(sGear);
-					//nDentesSmall.splice(nSort, 1);
+					nDentesSmall.splice(nSort, 1);
 				}
 				gearsLayer.addChild(gears[gears.length - 1]);
 			}
 			animatedEntrance();
 		}
 		
-		private var menorRaio:Number = 189.6 / 2;
-		private var minDentes:int = 12;
+		private var menorRaio:Number = 84.5 * 1.3;
+		private var minDentes:int = 35;
 		
 		private function getRaio(nDentes:int):Number 
 		{
@@ -155,8 +161,8 @@ package
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
 				}else {
-					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					//var angle:Number = 0;
+					//var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					var angle:Number = 0;
 					setInicialAngle(gears[i - 1], angle, gears[i]);
 					if(left){
 						gears[i].posFinal = new Point(
