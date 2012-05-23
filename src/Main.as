@@ -144,9 +144,9 @@ package
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
 				}else {
-					//var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					var angle:Number = 0;
-					//gears[i].rotacaoInicial = -angle;
+					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					//var angle:Number = 0;
+					setInicialAngle(gears[i - 1], angle, gears[i]);
 					if(left){
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
@@ -170,6 +170,11 @@ package
 				else Actuate.tween(gears[i], 0.5, { x: gears[i].posFinal.x, y: gears[i].posFinal.y } ).ease(Cubic.easeOut).delay(delay);
 				delay += 0.1;
 			}
+		}
+		
+		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear):void 
+		{
+			
 		}
 		
 		private function animatedExit():void
