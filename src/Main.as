@@ -10,6 +10,7 @@ package
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	/**
@@ -24,11 +25,10 @@ package
 		private var cronometerGear:Cronometer;
 		private var timerPaused:Boolean;
 		
-		private var raiosGrandes:Array;
-		private var raiosPequenos:Array;
-		private var raiosGrandesSpr:Array;
-		private var raiosPequenosSpr:Array;
-		private var omegasGrandes:Array;
+		private var nDentesBig:Array;
+		private var nDentesSmall:Array;
+		
+		private var omegas:Array;
 		
 		private var gears:Vector.<Gear>;
 		private var nGears:int;
@@ -54,14 +54,8 @@ package
 		
 		private function initVariables():void
 		{
-			raiosGrandes = [[80.80, 20], [100, 10], [110, 10], [120, 10], [130, 10], [140, 10], [150, 10]];
-			raiosPequenos = [[20, 10], [25, 10], [30, 10], [35, 10], [40.4, 10]];
-			
-			raiosGrandesSpr = [new Gear8085(), new Gear100(), new Gear110(), new Gear120(), new Gear130(), new Gear140(), new Gear150()];
-			raiosPequenosSpr = [new Gear20(), new Gear25(), new Gear30(), new Gear35(), new Gear40()];
-			
-			//omegasGrandes = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6];
-			omegasGrandes = [3, 3.5, 4, 4.5, 5, 5.5, 6];
+			initGearsDentes();
+			omegas = [3, 3.5, 4, 4.5, 5, 5.5, 6];
 			
 			cronometer = new Cronometer();
 			cronometerGear = new Cronometer();
@@ -76,13 +70,14 @@ package
 			infoBar.mouseEnabled = false;
 		}
 		
+		private function initGearsDentes():void
+		{
+			nDentesSmall = [8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24];
+			nDentesBig = [12, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36];
+		}
+		
 		private function preparaBolinhas():void
 		{
-			for each (var item:Gear in gears)
-			{
-				item.update();
-			}
-			
 			if (gears.length > 0) {
 				for (var i:int = gears.length - 1; i >= 0 ; i--) 
 				{
@@ -92,49 +87,39 @@ package
 				gears.splice(0, gears.length);
 			}
 			
-			var rP:Array = [];
-			var rPSpr:Array = [];
-			for (i = 0; i < raiosPequenos.length; i++) 
-			{
-				rP.push(raiosPequenos[i]);
-				rPSpr.push(raiosPequenosSpr[i]);
-			}
+			initGearsDentes();
 			
-			//nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
-			nGears = 2;
+			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			//nGears = 3;
 			var nSort:int;
 			
 			for (i = 0; i < nGears; i++)
 			{
 				if (i == 0) {//Sorteia raio grande
-					//nSort = Math.floor(Math.random() * raiosGrandes.length);
+					//nSort = Math.floor(Math.random() * nDentesBig.length);
 					nSort = 0;
-					gears.push(new Gear(raiosGrandesSpr[nSort], cronometerGear, raiosGrandes[nSort][0], raiosGrandes[nSort][1], /*omegasGrandes[Math.floor(Math.random() * omegasGrandes.length)]*/0.5));
+					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
+					bGear.omega = 1;
+					gears.push(bGear);
 				}else {//sorteia raios(s) pequeno(s)
-					//nSort = Math.floor(Math.random() * rP.length);
-					nSort = 4;
-					gears.push(new Gear(rPSpr[nSort], cronometerGear, rP[nSort][0], rP[nSort][1], gears[i - 1].omega * (gears[i - 1].raio / rP[nSort][0]) * -1));
-					rP.splice(nSort, 1);
-					rPSpr.splice(nSort, 1);
+					//nSort = Math.floor(Math.random() * nDentesSmall.length);
+					nSort = 0;
+					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
+					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
+					gears.push(sGear);
+					//nDentesSmall.splice(nSort, 1);
 				}
 				gearsLayer.addChild(gears[gears.length - 1]);
 			}
-			
-			/*
-			for (i = 0; i < nGears; i++)
-			{
-				if (i == 0) {
-					gears[i].x = (Math.random() * 100) + 200;
-					gears[i].y = (Math.random() * 100) + 200;
-				}else {
-					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					gears[i].x = gears[i-1].x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180);
-					gears[i].y = gears[i-1].y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180);
-				}
-			}
-			*/
-			
 			animatedEntrance();
+		}
+		
+		private var menorRaio:Number = 189.6 / 2;
+		private var minDentes:int = 12;
+		
+		private function getRaio(nDentes:int):Number 
+		{
+			return (menorRaio * nDentes) / minDentes;
 		}
 		
 		private function animatedEntrance():void
@@ -159,31 +144,23 @@ package
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
 				}else {
-					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					//var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					var angle:Number = 0;
+					//gears[i].rotacaoInicial = -angle;
 					if(left){
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
 						);
+						posX = 800;
 					}else {
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
 						);
+						posX = -100;
 					}
-					
-					if (i == 1) {
-						posX = (left ? 700 : 0);
-						posY =  - 100;
-					}
-					if (i == 2) {
-						posX = (left ? 800: -100);
-						posY = (angle < 0 ? 0 : 500);
-					}
-					if (i == 3) {
-						posX = (left ? 700 : 0);
-						posY = 600;
-					}
+					posY = (angle < 0 ? 0 : 500);
 				}
 				
 				gears[i].posInicial = new Point(posX, posY);
@@ -217,9 +194,10 @@ package
 		
 		private function updateGears(e:Event):void 
 		{
+			var time:Number = cronometerGear.read() / 1000;
 			for each (var item:Gear in gears)
 			{
-				item.update();
+				item.update(time);
 			}
 		}
 		
@@ -268,7 +246,7 @@ package
 			cronometer.stop();
 			cronometer.reset();
 			
-			cronometro.time.text = "0s";
+			cronometro.time.text = "0";
 			timerPaused = true;
 		}
 		
@@ -301,7 +279,7 @@ package
 					setInfoMsg("Licença e créditos.");
 					break;
 				case "Gear":
-					setInfoMsg("Engrenagem de raio " + String(Gear(e.target).raio) + " unidades de comprimento.");
+					setInfoMsg("Engrenagem de raio " + Gear(e.target).raio.toFixed(2) + " unidades de comprimento.");
 					break;
 				
 				default:
