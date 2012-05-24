@@ -6,6 +6,7 @@ package BaseAssets
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.filters.ColorMatrixFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.geom.Rectangle;
 	/**
@@ -19,10 +20,23 @@ package BaseAssets
 		 */
 		private var creditosScreen:AboutScreen;
 		private var orientacoesScreen:InstScreen;
-		private var feedbackScreen:FeedBackScreen;
+		protected var feedbackScreen:FeedBackScreen;
+		protected var statsScreen:StatsScreen;
+		
+		private var hasStats:Boolean = true;
 		
 		public var botoes:Botoes;
 		private var bordaAtividade:Borda;
+		
+		/*
+		 * Filtro de conversão para tons de cinza.
+		 */
+		public const GRAYSCALE_FILTER:ColorMatrixFilter = new ColorMatrixFilter([
+			0.2225, 0.7169, 0.0606, 0, 0,
+			0.2225, 0.7169, 0.0606, 0, 0,
+			0.2225, 0.7169, 0.0606, 0, 0,
+			0.0000, 0.0000, 0.0000, 1, 0
+		]);
 		
 		public function BaseMain() 
 		{
@@ -52,6 +66,10 @@ package BaseAssets
 			addChild(orientacoesScreen);
 			feedbackScreen = new FeedBackScreen();
 			addChild(feedbackScreen);
+			if(hasStats){
+				statsScreen = new StatsScreen();
+				addChild(statsScreen);
+			}
 			
 			botoes = new Botoes();
 			botoes.x = stage.stageWidth - botoes.width - 10;
@@ -75,6 +93,9 @@ package BaseAssets
 			botoes.orientacoesBtn.addEventListener(MouseEvent.CLICK, openOrientacoes);
 			botoes.creditos.addEventListener(MouseEvent.CLICK, openCreditos);
 			botoes.resetButton.addEventListener(MouseEvent.CLICK, reset);
+			if (hasStats) {
+				botoes.btEstatisticas.addEventListener(MouseEvent.CLICK, openStats);
+			}
 			
 			createToolTips();
 		}
@@ -94,6 +115,10 @@ package BaseAssets
 			addChild(resetTT);
 			addChild(infoTT);
 			
+			if (hasStats) {
+				var statsTT:ToolTip = new ToolTip(botoes.btEstatisticas, "Desempenho", 12, 0.8, 100, 0.6, 0.1);
+				addChild(statsTT);
+			}
 		}
 		
 		/**
@@ -112,6 +137,15 @@ package BaseAssets
 		{
 			creditosScreen.openScreen();
 			setChildIndex(creditosScreen, numChildren - 1);
+		}
+		
+		/**
+		 * Abre a tela de estatísticas.
+		 */
+		protected function openStats(e:MouseEvent):void 
+		{
+			statsScreen.openScreen();
+			setChildIndex(statsScreen, numChildren - 1);
 		}
 		
 		/**
