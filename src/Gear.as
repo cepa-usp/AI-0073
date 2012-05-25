@@ -1,5 +1,6 @@
 package 
 {
+	import cepa.utils.Angle;
 	import cepa.utils.Cronometer;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -13,12 +14,11 @@ package
 		private var _nDentes:int;
 		private var _raio:Number;
 		private var _omega:Number = 0;
-		private var _rotacao:Number;
+		private var _rotacao:Angle = new Angle();
+		private var _rotacaoInicial:Angle = new Angle();
 		
 		public var posFinal:Point;
 		public var posInicial:Point;
-		
-		private var _rotacaoInicial:Number = 0;
 		
 		private var gearSpr:Sprite;
 		
@@ -29,12 +29,15 @@ package
 			_raio = raio;
 			gearSpr = spr;
 			addChild(gearSpr);
+			
+			_rotacao.domain = Angle.MINUS_PI_TO_PLUS_PI;
+			_rotacaoInicial.domain = Angle.MINUS_PI_TO_PLUS_PI;
 		}
 		
 		public function update(time:Number):void
 		{
-			_rotacao = time * omega + _rotacaoInicial;
-			gearSpr.rotation = rotacao * 180 / Math.PI % 360;
+			_rotacao.radians = time * omega + _rotacaoInicial.radians;
+			gearSpr.rotation = _rotacao.degrees;
 		}
 		
 		public function get raio():Number 
@@ -60,7 +63,7 @@ package
 		
 		public function get rotacao():Number 
 		{
-			return _rotacao;
+			return _rotacao.degrees;
 		}
 		
 		public function get nDentes():int 
@@ -75,14 +78,33 @@ package
 		
 		public function set rotacaoInicial(value:Number):void 
 		{
-			_rotacaoInicial = value;
-			gearSpr.rotation = value * 180 / Math.PI % 360;;
+			_rotacaoInicial.degrees = value;
+			gearSpr.rotation = _rotacaoInicial.degrees;
+		}
+		
+		public function get rotacaoInicial():Number 
+		{
+			return _rotacaoInicial.degrees;
 		}
 		
 		public function moveToInicial():void
 		{
 			this.x = posInicial.x;
 			this.y = posInicial.y;
+		}
+		
+		public function get beta():Number {
+			var a:Number = 360 + rotacaoInicial;
+			while (a < 270) { 
+				a += (360 / nDentes);
+			}
+			return (270 - a);
+			
+		}
+		
+		public function get delta():Number
+		{
+			return 360 / _nDentes;
 		}
 		
 	}

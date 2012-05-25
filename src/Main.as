@@ -1,6 +1,7 @@
 package  
 {
 	import BaseAssets.BaseMain;
+	import cepa.utils.Angle;
 	import cepa.utils.Cronometer;
 	import com.adobe.serialization.json.JSON;
 	import com.eclecticdesignstudio.motion.Actuate;
@@ -26,6 +27,7 @@ package
 	public class Main extends BaseMain
 	{
 		private var gearsLayer:Sprite;
+		private var tutoLayer:Sprite;
 		
 		private var cronometer:Cronometer;
 		private var cronometerGear:Cronometer;
@@ -85,9 +87,13 @@ package
 			timerPaused = true;
 			gears = new Vector.<Gear>();
 			
+			tutoLayer = new Sprite();
 			gearsLayer = new Sprite();
+			addChild(tutoLayer);
 			addChild(gearsLayer);
+			
 			setChildIndex(gearsLayer, 0);
+			setChildIndex(tutoLayer, 0);
 			setChildIndex(fundo, 0);
 			
 			cronometro.time.mouseEnabled = false;
@@ -135,8 +141,8 @@ package
 			
 			initGearsDentes();
 			
-			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
-			//nGears = 3;
+			//nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
+			nGears = 4;
 			var nSort:int;
 			var sortedGearN:int = Math.floor(Math.random() * (nGears - 1)) + 1;
 			
@@ -146,9 +152,10 @@ package
 					nSort = Math.floor(Math.random() * nDentesBig.length);
 					//nSort = 0;
 					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
-					bGear.omega = Math.random() * 2 + 0.2;
+					//bGear.omega = Math.random() * 2 + 0.2;
 					//bGear.omega = omegas[Math.floor(Math.random() * omegas.length)];
-					//bGear.omega = 1;
+					bGear.rotation = 90;
+					bGear.omega = 0.1;
 					bGear.scaleX = bGear.scaleY = 1.3;
 					gears.push(bGear);
 				}else {//sorteia raios(s) pequeno(s)
@@ -157,13 +164,14 @@ package
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
 					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
 					sGear.scaleX = sGear.scaleY = 1.3;
+					sGear.rotation = 90;
 					gears.push(sGear);
 					nDentesSmall.splice(nSort, 1);
 					
 					if (i == sortedGearN) {
 						sortedGear = sGear;
 						setInfoOut(null);
-						trace(sortedGear.omega);
+						//trace(sortedGear.omega);
 					}
 				}
 				gearsLayer.addChild(gears[gears.length - 1]);
@@ -178,7 +186,8 @@ package
 		
 		private function animatedEntrance():void
 		{
-			var left:Boolean = (Math.random() > 0.5 ? true : false);
+			//var left:Boolean = (Math.random() > 0.5 ? true : false);
+			var left:Boolean = true;
 			
 			var posX:Number;
 			var posY:Number;
@@ -197,10 +206,11 @@ package
 						posX = 900;
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
+					trace("indice \t nDentesAnt \t passoAnt \t rotAnt \t angulo \t nDentesProx \t passoProx \t rotProx");
 				}else {
-					//var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					var angle:Number = 0;
-					setInicialAngle(gears[i - 1], angle, gears[i]);
+					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					//var angle:Number = 0;
+					setInicialAngle(gears[i - 1], angle, gears[i], i);
 					if(left){
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
@@ -226,9 +236,29 @@ package
 			}
 		}
 		
-		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear):void 
+		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear, indice:int):void 
 		{
+			gearToRotate.rotacaoInicial = -180 - (gearToRotate.delta / 2) - (gearAnt.rotacaoInicial) * (gearAnt.nDentes / gearToRotate.nDentes);
 			
+			trace(indice + "\t" + gearAnt.nDentes + "\t" + gearAnt.delta + "\t" + gearAnt.rotacaoInicial + "\t" + angle + "\t" + gearToRotate.nDentes + "\t" + gearToRotate.delta + "\t" + gearToRotate.rotacaoInicial);
+			
+			/*
+			var a:Number = 90 - gearAnt.rotacaoInicial;
+			while ( a > 0) {
+				a -= gearAnt.delta;
+			}
+			var diffA:Number = Math.abs(a) / gearAnt.delta;
+			
+			var b:Number = 90;
+			while (b < 180) {
+				b += gearToRotate.delta;
+			}
+			
+			var diffB:Number = (b - 180)
+			
+			var diff:Number = Math.abs(a) - (b - 180);
+			gearToRotate.rotacaoInicial = -diff// - (gearToRotate.delta / 2);
+			*/
 		}
 		
 		private function animatedExit():void
@@ -436,8 +466,44 @@ package
 			return score;
 		}
 		
+		private var tutorialArrows:Vector.<TutorialArrow> = new Vector.<TutorialArrow>();
+		private function initSolveTutorial():void
+		{
+			removeSolveTutorial();
+			for (var i:int = 0; i < gears.length - 1; i++) 
+			{
+				var tutoArrow:TutorialArrow = new TutorialArrow();
+				tutoArrow.label = String(i + 1);
+				
+				tutoLayer.addChild(tutoArrow);
+				tutorialArrows.push(tutoArrow);
+				
+				var angle:Angle = new Angle();
+				angle.radians = Math.atan2(gears[i + 1].y - gears[i].y, gears[i + 1].x - gears[i].x);
+				var posX:Number  = gears[i].raio * Math.cos(angle.radians) + gears[i].x;
+				var posY:Number  = gears[i].raio * Math.sin(angle.radians) + gears[i].y;
+				
+				tutoArrow.x = posX;
+				tutoArrow.y = posY;
+				tutoArrow.rotation = (gears[i].omega > 0 ? angle.degrees + 90 : angle.degrees - 90);
+			}
+		}
+		
+		private function removeSolveTutorial():void
+		{
+			if (tutorialArrows.length > 0) {
+				for (var i:int = 0; i < tutorialArrows.length; i++) 
+				{
+					tutoLayer.removeChild(tutorialArrows[i]);
+				}
+				
+				tutorialArrows.splice(0, tutorialArrows.length);
+			}
+		}
+		
 		override public function reset(e:MouseEvent = null):void
 		{
+			removeSolveTutorial();
 			resetaCronometro(null);
 			animatedExit();
 			
@@ -451,7 +517,7 @@ package
 		
 		override public function iniciaTutorial(e:MouseEvent = null):void
 		{
-			
+			initSolveTutorial();
 		}
 		
 		
@@ -483,6 +549,9 @@ package
 			connected = scorm.connect();
 			
 			if (connected) {
+				
+				if (scorm.get("cmi.mode") != "normal") return;
+				
 				scorm.set("cmi.exit", "suspend");
 				// Verifica se a AI já foi concluída.
 				var status:String = scorm.get("cmi.completion_status");	
@@ -545,6 +614,7 @@ package
 		{
 			if (connected)
 			{
+				if (scorm.get("cmi.mode") != "normal") return;
 				// Salva no LMS a nota do aluno.
 				var success:Boolean = scorm.set("cmi.score.raw", score.toString());
 
