@@ -49,6 +49,8 @@ package
 		private var stats:Object = new Object();
 		private var goalScore:Number = 50;
 		
+		private var answerTuto:CaixaTexto;
+		
 		public function Main() 
 		{
 			if (stage) init();
@@ -92,14 +94,17 @@ package
 			addChild(tutoLayer);
 			addChild(gearsLayer);
 			
-			setChildIndex(gearsLayer, 0);
 			setChildIndex(tutoLayer, 0);
+			setChildIndex(gearsLayer, 0);
 			setChildIndex(fundo, 0);
 			
 			cronometro.time.mouseEnabled = false;
 			infoBar.mouseEnabled = false;
 			
 			TextField(resposta).restrict = "-0123456789,.";
+			
+			answerTuto = new CaixaTexto(true, false);
+			addChild(answerTuto);
 		}
 		
 		private function initGearsDentes():void
@@ -208,23 +213,24 @@ package
 					posY = (Math.random() > 0.5 ? 0 : 500);
 					trace("indice \t nDentesAnt \t passoAnt \t rotAnt \t angulo \t nDentesProx \t passoProx \t rotProx");
 				}else {
-					var angle:Number = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					//var angle:Number = 0;
-					setInicialAngle(gears[i - 1], angle, gears[i], i);
+					var angle:Angle = new Angle();
+					angle.degrees = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
+					//angle.degrees = 0;
+					setInicialAngle(gears[i - 1], angle.degrees, gears[i], i);
 					if(left){
 						gears[i].posFinal = new Point(
-							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
-							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
+							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
+							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
 						);
 						posX = 800;
 					}else {
 						gears[i].posFinal = new Point(
-							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle * Math.PI / 180), 
-							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle * Math.PI / 180)
+							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
+							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
 						);
 						posX = -100;
 					}
-					posY = (angle < 0 ? 0 : 500);
+					posY = (angle.degrees < 0 ? 0 : 500);
 				}
 				
 				gears[i].posInicial = new Point(posX, posY);
@@ -238,7 +244,7 @@ package
 		
 		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear, indice:int):void 
 		{
-			gearToRotate.rotacaoInicial = -180 - (gearToRotate.delta / 2) - (gearAnt.rotacaoInicial) * (gearAnt.nDentes / gearToRotate.nDentes);
+			gearToRotate.rotacaoInicial = 180 + (gearToRotate.delta / 2) + (angle - gearAnt.rotacaoInicial) * (gearAnt.nDentes / gearToRotate.nDentes) - angle * (gearAnt.nDentes / gearToRotate.nDentes);
 			
 			trace(indice + "\t" + gearAnt.nDentes + "\t" + gearAnt.delta + "\t" + gearAnt.rotacaoInicial + "\t" + angle + "\t" + gearToRotate.nDentes + "\t" + gearToRotate.delta + "\t" + gearToRotate.rotacaoInicial);
 			
@@ -467,13 +473,25 @@ package
 		}
 		
 		private var tutorialArrows:Vector.<TutorialArrow> = new Vector.<TutorialArrow>();
+		private var ind:Indicador;
 		private function initSolveTutorial():void
 		{
 			removeSolveTutorial();
+			
+			ind = new Indicador();
+			ind.mouseChildren = false;
+			ind.buttonMode = true;
+			ind.label.text = "1";
+			tutoLayer.addChild(ind);
+			ind.x = gears[0].x;
+			ind.y = gears[0].y - gears[0].raio / 2;
+			ind.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
+			ind.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
+			
 			for (var i:int = 0; i < gears.length - 1; i++) 
 			{
 				var tutoArrow:TutorialArrow = new TutorialArrow();
-				tutoArrow.label = String(i + 1);
+				tutoArrow.label = String(i + 2);
 				
 				tutoLayer.addChild(tutoArrow);
 				tutorialArrows.push(tutoArrow);
@@ -486,12 +504,48 @@ package
 				tutoArrow.x = posX;
 				tutoArrow.y = posY;
 				tutoArrow.rotation = (gears[i].omega > 0 ? angle.degrees + 90 : angle.degrees - 90);
+				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
+				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
+				tutoArrow.arrowText = "A velocidade angular é a mesma nas 2 rodas.";
 			}
+		}
+		
+		private function overTutoArrow(e:MouseEvent):void 
+		{
+			var pos:Point;
+			if (e.target.parent is TutorialArrow) pos = Sprite(e.target).parent.localToGlobal(new Point(e.target.x, e.target.y));
+			else pos = new Point(e.target.x, e.target.y);
+			
+			var horizontalAlign:String = CaixaTexto.CENTER;
+			if (pos.x > stage.stageWidth / 2 + 250) {
+				horizontalAlign = CaixaTexto.LAST;
+			}else if(pos.x < stage.stageWidth / 2 - 250){
+				horizontalAlign = CaixaTexto.FIRST;
+			}
+			
+			var verticalAlign:String;
+			if (pos.y > stage.stageHeight / 2) {
+				verticalAlign = CaixaTexto.BOTTON;
+			}else {
+				verticalAlign = CaixaTexto.TOP;
+			}
+			
+			if (e.target.parent is TutorialArrow) answerTuto.setText(TutorialArrow(e.target.parent).arrowText, verticalAlign, horizontalAlign);
+			else answerTuto.setText("Roda qualquer com alguma informação.", verticalAlign, horizontalAlign);
+			answerTuto.setPosition(pos.x, pos.y);
+		}
+		
+		private function outTutoArrow(e:MouseEvent):void 
+		{
+			answerTuto.visible = false;
 		}
 		
 		private function removeSolveTutorial():void
 		{
 			if (tutorialArrows.length > 0) {
+				tutoLayer.removeChild(ind);
+				ind = null;
+			
 				for (var i:int = 0; i < tutorialArrows.length; i++) 
 				{
 					tutoLayer.removeChild(tutorialArrows[i]);

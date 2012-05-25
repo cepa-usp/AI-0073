@@ -1,15 +1,18 @@
 package 
 {
 	import flash.display.Sprite;
+	import flash.text.TextField;
 	/**
 	 * ...
 	 * @author Alexandre
 	 */
 	public class TutorialArrow extends Sprite
 	{
-		
+		public var labelField:Sprite;
+		public var arrowText:String;
 		public function TutorialArrow() 
 		{
+			labelField = this.indicador;
 			this.indicador.mouseChildren = false;
 			this.indicador.buttonMode = true;
 		}
