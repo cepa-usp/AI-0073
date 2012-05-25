@@ -105,6 +105,8 @@ package
 			
 			answerTuto = new CaixaTexto(true, false);
 			addChild(answerTuto);
+			
+			reiniciar.visible = false;
 		}
 		
 		private function initGearsDentes():void
@@ -157,10 +159,10 @@ package
 					nSort = Math.floor(Math.random() * nDentesBig.length);
 					//nSort = 0;
 					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
-					//bGear.omega = Math.random() * 2 + 0.2;
+					bGear.omega = Math.random() * 2 + 1;
 					//bGear.omega = omegas[Math.floor(Math.random() * omegas.length)];
-					bGear.rotation = 90;
-					bGear.omega = 0.1;
+					//bGear.rotation = 90;
+					//bGear.omega = 0.1;
 					bGear.scaleX = bGear.scaleY = 1.3;
 					gears.push(bGear);
 				}else {//sorteia raios(s) pequeno(s)
@@ -169,7 +171,7 @@ package
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
 					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
 					sGear.scaleX = sGear.scaleY = 1.3;
-					sGear.rotation = 90;
+					//sGear.rotation = 90;
 					gears.push(sGear);
 					nDentesSmall.splice(nSort, 1);
 					
@@ -191,8 +193,8 @@ package
 		
 		private function animatedEntrance():void
 		{
-			//var left:Boolean = (Math.random() > 0.5 ? true : false);
-			var left:Boolean = true;
+			var left:Boolean = (Math.random() > 0.5 ? true : false);
+			//var left:Boolean = true;
 			
 			var posX:Number;
 			var posY:Number;
@@ -205,32 +207,36 @@ package
 					if (left) {
 						gears[i].posFinal = new Point((Math.random() * 100) + 200, (Math.random() * 100) + 200);
 						posX = -200;
+						gears[i].rotation = 90;
 					}
 					else {
 						gears[i].posFinal = new Point(500 - (Math.random() * 100), (Math.random() * 100) + 200);
 						posX = 900;
+						gears[i].rotation = -90;
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
 					trace("indice \t nDentesAnt \t passoAnt \t rotAnt \t angulo \t nDentesProx \t passoProx \t rotProx");
 				}else {
 					var angle:Angle = new Angle();
 					angle.degrees = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					//angle.degrees = 0;
-					setInicialAngle(gears[i - 1], angle.degrees, gears[i], i);
+					angle.degrees = 0;
 					if(left){
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
 						);
 						posX = 800;
+						gears[i].rotation = 90;
 					}else {
 						gears[i].posFinal = new Point(
 							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
 							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
 						);
 						posX = -100;
+						gears[i].rotation = -90;
 					}
 					posY = (angle.degrees < 0 ? 0 : 500);
+					setInicialAngle(gears[i - 1], angle.degrees, gears[i], i);
 				}
 				
 				gears[i].posInicial = new Point(posX, posY);
@@ -408,6 +414,7 @@ package
 			btAnswer.addEventListener(MouseEvent.CLICK, answerExercise);
 			feedbackScreen.addEventListener(Event.CLOSE, fazValer);
 			btValendoNota.addEventListener(MouseEvent.CLICK, openValendoNotaScreen);
+			reiniciar.addEventListener(MouseEvent.CLICK, reset);
 		}
 		
 		private function answerExercise(e:MouseEvent):void 
@@ -433,9 +440,12 @@ package
 				if (currentScore > 99) feedbackScreen.setText("Parabéns, você acertou.\nClique em \"reset\" para um novo exercício.");
 				else feedbackScreen.setText("Ops... parece que seus cálculos não estão corretos.\nClique em \"reset\" para um novo exercício.");
 				
-				btAnswer.mouseEnabled = false;
-				btAnswer.filters = [GRAYSCALE_FILTER];
-				btAnswer.alpha = 0.5;
+				//btAnswer.mouseEnabled = false;
+				//btAnswer.filters = [GRAYSCALE_FILTER];
+				//btAnswer.alpha = 0.5;
+				
+				btAnswer.visible = false;
+				reiniciar.visible = true;
 				
 				TextField(resposta).mouseEnabled = false;
 				
@@ -517,9 +527,9 @@ package
 			else pos = new Point(e.target.x, e.target.y);
 			
 			var horizontalAlign:String = CaixaTexto.CENTER;
-			if (pos.x > stage.stageWidth / 2 + 250) {
+			if (pos.x > stage.stageWidth / 2 + 200) {
 				horizontalAlign = CaixaTexto.LAST;
-			}else if(pos.x < stage.stageWidth / 2 - 250){
+			}else if(pos.x < stage.stageWidth / 2 - 200){
 				horizontalAlign = CaixaTexto.FIRST;
 			}
 			
@@ -564,6 +574,9 @@ package
 			btAnswer.mouseEnabled = true;
 			btAnswer.filters = [];
 			btAnswer.alpha = 1;
+			
+			btAnswer.visible = true;
+			reiniciar.visible = false;
 			
 			TextField(resposta).mouseEnabled = true;
 			TextField(resposta).text = "";
