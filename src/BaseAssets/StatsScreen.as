@@ -77,9 +77,9 @@ package BaseAssets
 				nTotal.text = this.stats.nTotal;
 				nValendo.text = this.stats.nValendo;
 				nNaoValendo.text = this.stats.nNaoValendo;
-				scoreMin.text = String(this.stats.scoreMin);
-				scoreTotal.text = String(this.stats.scoreTotal);
-				scoreValendo.text = String(this.stats.scoreValendo);
+				scoreMin.text = String(this.stats.scoreMin).replace(".", "");
+				scoreTotal.text = String(this.stats.scoreTotal).replace(".", "");
+				scoreValendo.text = String(this.stats.scoreValendo).replace(".", "");
 				
 				if (this.stats.valendo) {
 					valendoMC.gotoAndStop("VALENDO");

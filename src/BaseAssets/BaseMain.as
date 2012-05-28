@@ -38,6 +38,13 @@ package BaseAssets
 			0.0000, 0.0000, 0.0000, 1, 0
 		]);
 		
+		public const RED_FILTER:ColorMatrixFilter = new ColorMatrixFilter([
+			0.4, 0, 0, 0, 0,
+			0.4, 0, 0, 0, 0,
+			1, 0, 0, 0, 0,
+			0, 0, 0, 1, 0
+		]);
+		
 		public function BaseMain() 
 		{
 			if (stage) initBase();
@@ -66,6 +73,7 @@ package BaseAssets
 			addChild(orientacoesScreen);
 			feedbackScreen = new FeedBackScreen();
 			addChild(feedbackScreen);
+			
 			if(hasStats){
 				statsScreen = new StatsScreen();
 				addChild(statsScreen);
@@ -119,6 +127,20 @@ package BaseAssets
 				var statsTT:ToolTip = new ToolTip(botoes.btEstatisticas, "Desempenho", 12, 0.8, 100, 0.6, 0.1);
 				addChild(statsTT);
 			}
+		}
+		
+		protected function lock(bt:*):void
+		{
+			bt.filters = [GRAYSCALE_FILTER];
+			bt.alpha = 0.5;
+			bt.mouseEnabled = false;
+		}
+		
+		protected function unlock(bt:*):void
+		{
+			bt.filters = [];
+			bt.alpha = 1;
+			bt.mouseEnabled = true;
 		}
 		
 		/**

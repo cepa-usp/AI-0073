@@ -55,7 +55,7 @@ package
 			background.filters = [new GlowFilter(0x000000, 0.5, 6, 6, 2, 2)];
 			
 			texto = new TextField();
-			texto.defaultTextFormat = new TextFormat("verdana", 11, 0x000000);
+			texto.defaultTextFormat = new TextFormat("arial", 12, 0x000000);
 			texto.multiline = true;
 			texto.wordWrap = true;
 			texto.autoSize = TextFieldAutoSize.LEFT;
@@ -103,13 +103,13 @@ package
 		public function setText(text:*, side:String = null, align:String = null, width:Number = 200):void
 		{
 			this.textArray = null;
-			texto.text = "";
+			texto.htmlText = "";
 			
 			if (width >= minWidth) texto.width = width;
 			else texto.width = minWidth;
 			
 			if (text is String) {
-				texto.text = text;
+				texto.htmlText = text;
 				hasNext = false;
 			}else if (text is Array) {
 				var arrayCopy:Array = [];
@@ -119,12 +119,12 @@ package
 					
 				}
 				if (arrayCopy.length > 1) {
-					texto.text = arrayCopy[0];
+					texto.htmlText = arrayCopy[0];
 					this.textArray = arrayCopy;
 					this.textArray.splice(0, 1);
 					hasNext = true;
 				}else if (arrayCopy.length == 1) {
-					texto.text = arrayCopy[0];
+					texto.htmlText = arrayCopy[0];
 					this.textArray = arrayCopy;
 					this.textArray.splice(0, 1);
 					hasNext = false;

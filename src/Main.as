@@ -7,6 +7,7 @@ package
 	import com.eclecticdesignstudio.motion.Actuate;
 	import com.eclecticdesignstudio.motion.easing.Cubic;
 	import flash.display.DisplayObject;
+	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -40,7 +41,7 @@ package
 		
 		private var gears:Vector.<Gear>;
 		private var nGears:int;
-		private var maxGears:int = 4;
+		private var maxGears:int = 6;
 		private var minGears:int = 2;
 		
 		private var menorRaio:Number = 84.5 * 1.3;
@@ -147,7 +148,7 @@ package
 				gears.splice(0, gears.length);
 			}
 			
-			initGearsDentes();
+			//initGearsDentes();
 			
 			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
 			var nSort:int;
@@ -161,7 +162,7 @@ package
 				if (i == 0) {//Sorteia raio grande
 					nSort = Math.floor(Math.random() * nDentesBig.length);
 					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
-					bGear.omega = Math.random() * 2 + 1;
+					bGear.omega = Number((Math.random() * 2 + 1).toFixed(2)) * (Math.random() > 0.5 ? 1 : -1);
 					//bGear.omega = omegas[Math.floor(Math.random() * omegas.length)];
 					//bGear.omega = 0.1;
 					bGear.rotacaoInicial = 0;
@@ -171,18 +172,19 @@ package
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
 					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
 					gears.push(sGear);
-					nDentesSmall.splice(nSort, 1);
+					//nDentesSmall.splice(nSort, 1);
 					
 					if (i == sortedGearN) {
 						sortedGear = sGear;
 						setInfoOut(null);
+						sGear.filters = [RED_FILTER];
 						//trace(sortedGear.omega);
 					}
 				}
 				
 				gears[i].scaleX = gears[i].scaleY = 1.3;
 				gears[i].rotation = 90;
-				angle.degrees = Math.round(Math.random() * 30) * (Math.random() > 0.5 ? 1 : -1);
+				angle.degrees = Math.round(Math.random() * 30) * (i % 2 == 0 ? 1 : -1);
 				if (!left) angle.degrees += 180;
 				gears[i].angle.degrees = angle.degrees;
 				
@@ -192,12 +194,6 @@ package
 				
 			}
 			animatedEntrance();
-		}
-		
-		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear):void 
-		{
-			
-			gearToRotate.rotacaoInicial = 180 + 360 / gearToRotate.delta / 2 - gearAnt.rotacaoInicial * gearAnt.nDentes / gearToRotate.nDentes + gearToRotate.angle.degrees * (gearAnt.nDentes + gearToRotate.nDentes) / gearToRotate.nDentes;
 		}
 		
 		private function getRaio(nDentes:int):Number 
@@ -216,11 +212,13 @@ package
 			{
 				if (i == 0) {
 					if (left) {
-						gears[i].posFinal = new Point((Math.random() * 100) + 200, (Math.random() * 100) + 200);
+						//gears[i].posFinal = new Point((Math.random() * 100) + 200, (Math.random() * 100) + 200);
+						gears[i].posFinal = new Point(20 + gears[i].raio, 270);
 						posX = -200;
 					}
 					else {
-						gears[i].posFinal = new Point(500 - (Math.random() * 100), (Math.random() * 100) + 200);
+						//gears[i].posFinal = new Point(500 - (Math.random() * 100), (Math.random() * 100) + 200);
+						gears[i].posFinal = new Point(650 - gears[i].raio, 270);
 						posX = 900;
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
@@ -337,6 +335,15 @@ package
 			//trace(classe);
 			
 			switch(classe) {
+				case "BtReiniciar":
+					setInfoMsg("Novo exercício.");
+					break;
+				case "BtOK":
+					setInfoMsg("Responder exercício.");
+					break;
+				case "BtValendoNota":
+					setInfoMsg("Faz o exercício valer nota.");
+					break;
 				case "Cronometro":
 					setInfoMsg("Cronômetro.");
 					break;
@@ -354,7 +361,7 @@ package
 					setInfoMsg("Abrir tela de orientações.");
 					break;
 				case "Btn_Reset":
-					setInfoMsg("Reinicia a atividade.");
+					setInfoMsg("Novo exercício.");
 					break;
 				case "Btn_CC":
 					setInfoMsg("Licença e créditos.");
@@ -377,7 +384,7 @@ package
 		
 		private function setInfoOut(e:MouseEvent):void 
 		{
-			setInfoMsg("Qual é a velocidade angular na engrenagem de raio " + sortedGear.raio.toFixed(2) + "?");
+			setInfoMsg("Qual é a velocidade angular na engrenagem azul?");
 		}
 		
 		private function setInfoMsg(msg:String):void
@@ -415,8 +422,14 @@ package
 				
 				stats.scoreTotal = ((stats.scoreTotal * (stats.nTotal - 1) + currentScore) / stats.nTotal).toFixed(0);
 				
-				if (currentScore > 99) feedbackScreen.setText("Parabéns, você acertou.\nClique em \"reset\" para um novo exercício.");
-				else feedbackScreen.setText("Ops... parece que seus cálculos não estão corretos.\nClique em \"reset\" para um novo exercício.");
+				if (currentScore > 99) {
+					initSolveTutorial(false);
+					feedbackScreen.setText("Parabéns, você acertou.\nClique em \"reset\" para um novo exercício.");
+				}
+				else {
+					initSolveTutorial(true);
+					feedbackScreen.setText("Ops... parece que seus cálculos não estão corretos.\nClique em \"reset\" para um novo exercício.");
+				}
 				
 				//btAnswer.mouseEnabled = false;
 				//btAnswer.filters = [GRAYSCALE_FILTER];
@@ -435,14 +448,18 @@ package
 		{
 			feedbackScreen.okCancelMode = true;
 			feedbackScreen.setText("Ao entrar no modo de avaliação e a partir do próximo lançamento, sua pontuação será contabilizada na sua nota. Além disso, não será possível retornar para o modo de investigação. Confirma a alteração para o modo de avaliação?");
+			setChildIndex(feedbackScreen, numChildren - 1);
 		}
 		
 		private function fazValer(e:Event = null):void
 		{
 			stats.valendo = true;
-			btValendoNota.filters = [GRAYSCALE_FILTER];
-			btValendoNota.alpha = 0.5;
-			btValendoNota.mouseEnabled = false;
+			//btValendoNota.filters = [GRAYSCALE_FILTER];
+			//btValendoNota.alpha = 0.5;
+			//btValendoNota.mouseEnabled = false;
+			
+			lock(btValendoNota);
+			lock(botoes.resetButton);
 			
 			if (e != null) {
 				reset();
@@ -454,7 +471,7 @@ package
 		{
 			var score:Number;
 			
-			if (Math.abs(sortedGear.omega - resp) < 0.1) score = 100;
+			if (Math.abs((sortedGear.omega * -1) - resp) < 0.1) score = 100;
 			else score = 0;
 			
 			return score;
@@ -462,7 +479,7 @@ package
 		
 		private var tutorialArrows:Vector.<TutorialArrow> = new Vector.<TutorialArrow>();
 		private var ind:Indicador;
-		private function initSolveTutorial():void
+		private function initSolveTutorial(errado:Boolean = false):void
 		{
 			removeSolveTutorial();
 			
@@ -476,27 +493,31 @@ package
 			ind.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
 			ind.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
 			
-			tutoLoop: for (var i:int = 0; i < gears.length - 1; i++) 
+			tutoLoop: for (var i:int = 1; i < gears.length; i++) 
 			{
-				if (gears[i] == sortedGear) break tutoLoop;
+				
+				if (!errado && gears[i] != sortedGear) continue tutoLoop;
 				
 				var tutoArrow:TutorialArrow = new TutorialArrow();
-				tutoArrow.label = String(i + 2);
+				if (errado) tutoArrow.label = String(i + 1);
+				else tutoArrow.label = "2";
 				
 				tutoLayer.addChild(tutoArrow);
 				tutorialArrows.push(tutoArrow);
 				
 				var angle:Angle = new Angle();
-				angle.radians = Math.atan2(gears[i + 1].y - gears[i].y, gears[i + 1].x - gears[i].x);
-				var posX:Number  = gears[i].raio * Math.cos(angle.radians) + gears[i].x;
-				var posY:Number  = gears[i].raio * Math.sin(angle.radians) + gears[i].y;
+				angle.radians = Math.atan2(gears[i].y - gears[i - 1].y, gears[i].x - gears[i - 1].x);
+				var posX:Number  = gears[i - 1].raio * Math.cos(angle.radians) + gears[i - 1].x;
+				var posY:Number  = gears[i - 1].raio * Math.sin(angle.radians) + gears[i - 1].y;
 				
 				tutoArrow.x = posX;
 				tutoArrow.y = posY;
-				tutoArrow.rotation = (gears[i].omega > 0 ? angle.degrees + 90 : angle.degrees - 90);
+				tutoArrow.rotation = (gears[i - 1].omega > 0 ? angle.degrees + 90 : angle.degrees - 90);
 				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
 				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
-				tutoArrow.arrowText = "A velocidade angular é a mesma nas 2 rodas.";
+				tutoArrow.arrowText = "A velocidade LINEAR das rodas <em>a</em> e <em>b</em> neste ponto é a mesma, de modo que ω<font size='8'>a</font> r<font size='8'>a</font> = ω<font size='8'>b</font> r<font size='8'>b</font>.\nDaí resulta ω<font size='8'>a</font> = " + gears[i].omega.toFixed(2).replace(".", ",") + " rad/s.";
+				
+				if (gears[i] == sortedGear) break tutoLoop;
 			}
 		}
 		
@@ -521,7 +542,10 @@ package
 			}
 			
 			if (e.target.parent is TutorialArrow) answerTuto.setText(TutorialArrow(e.target.parent).arrowText, verticalAlign, horizontalAlign);
-			else answerTuto.setText("Roda qualquer com alguma informação.", verticalAlign, horizontalAlign);
+			else {
+				var txt:String = "Meça o tempo t gasto pela roda maior para dar uma volta e calcule a velocidade angular dela: ω = 2π/t = " + String(gears[0].omega).replace(".", ",") + " rad/s.\nEm seguida, sabendo o raio r da roda, calcule a velocidade linear: v = ωr.";
+				answerTuto.setText(txt, verticalAlign, horizontalAlign);
+			}
 			answerTuto.setPosition(pos.x, pos.y);
 		}
 		
@@ -564,7 +588,7 @@ package
 		
 		override public function iniciaTutorial(e:MouseEvent = null):void
 		{
-			initSolveTutorial();
+			
 		}
 		
 		
