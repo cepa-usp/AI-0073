@@ -134,6 +134,7 @@ package
 			super.openStats(e);
 		}
 		
+		private var left:Boolean;
 		private var sortedGear:Gear;
 		private function preparaBolinhas():void
 		{
@@ -148,30 +149,27 @@ package
 			
 			initGearsDentes();
 			
-			//nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
-			nGears = 4;
+			nGears = Math.round(Math.random() * (maxGears - minGears)) + minGears;
 			var nSort:int;
 			var sortedGearN:int = Math.floor(Math.random() * (nGears - 1)) + 1;
+			var angle:Angle = new Angle();
+			left = (Math.random() > 0.5 ? true : false);
 			
 			for (i = 0; i < nGears; i++)
 			{
+				
 				if (i == 0) {//Sorteia raio grande
 					nSort = Math.floor(Math.random() * nDentesBig.length);
-					//nSort = 0;
 					var bGear:Gear = new Gear(nDentesBig[nSort], getRaio(nDentesBig[nSort]), new (getDefinitionByName("Gear" + String(nDentesBig[nSort]))));
 					bGear.omega = Math.random() * 2 + 1;
 					//bGear.omega = omegas[Math.floor(Math.random() * omegas.length)];
-					//bGear.rotation = 90;
 					//bGear.omega = 0.1;
-					bGear.scaleX = bGear.scaleY = 1.3;
+					bGear.rotacaoInicial = 0;
 					gears.push(bGear);
 				}else {//sorteia raios(s) pequeno(s)
 					nSort = Math.floor(Math.random() * nDentesSmall.length);
-					//nSort = 0;
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
 					sGear.omega = gears[i - 1].omega * (gears[i - 1].raio / sGear.raio) * -1;
-					sGear.scaleX = sGear.scaleY = 1.3;
-					//sGear.rotation = 90;
 					gears.push(sGear);
 					nDentesSmall.splice(nSort, 1);
 					
@@ -181,9 +179,25 @@ package
 						//trace(sortedGear.omega);
 					}
 				}
+				
+				gears[i].scaleX = gears[i].scaleY = 1.3;
+				gears[i].rotation = 90;
+				angle.degrees = Math.round(Math.random() * 30) * (Math.random() > 0.5 ? 1 : -1);
+				if (!left) angle.degrees += 180;
+				gears[i].angle.degrees = angle.degrees;
+				
+				if(i > 0) gears[i].rotacaoInicial = 180 + 360 / gears[i].nDentes / 2 - gears[i-1].rotacaoInicial * gears[i-1].nDentes / gears[i].nDentes + gears[i].angle.degrees * (gears[i-1].nDentes + gears[i].nDentes) / gears[i].nDentes;
+				
 				gearsLayer.addChild(gears[gears.length - 1]);
+				
 			}
 			animatedEntrance();
+		}
+		
+		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear):void 
+		{
+			
+			gearToRotate.rotacaoInicial = 180 + 360 / gearToRotate.delta / 2 - gearAnt.rotacaoInicial * gearAnt.nDentes / gearToRotate.nDentes + gearToRotate.angle.degrees * (gearAnt.nDentes + gearToRotate.nDentes) / gearToRotate.nDentes;
 		}
 		
 		private function getRaio(nDentes:int):Number 
@@ -193,9 +207,6 @@ package
 		
 		private function animatedEntrance():void
 		{
-			var left:Boolean = (Math.random() > 0.5 ? true : false);
-			//var left:Boolean = true;
-			
 			var posX:Number;
 			var posY:Number;
 			
@@ -207,36 +218,28 @@ package
 					if (left) {
 						gears[i].posFinal = new Point((Math.random() * 100) + 200, (Math.random() * 100) + 200);
 						posX = -200;
-						gears[i].rotation = 90;
 					}
 					else {
 						gears[i].posFinal = new Point(500 - (Math.random() * 100), (Math.random() * 100) + 200);
 						posX = 900;
-						gears[i].rotation = -90;
 					}
 					posY = (Math.random() > 0.5 ? 0 : 500);
-					trace("indice \t nDentesAnt \t passoAnt \t rotAnt \t angulo \t nDentesProx \t passoProx \t rotProx");
 				}else {
-					var angle:Angle = new Angle();
-					angle.degrees = Math.random() * 30 * (Math.random() > 0.5 ? 1 : -1);
-					angle.degrees = 0;
+					
 					if(left){
 						gears[i].posFinal = new Point(
-							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
-							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
+							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(gears[i].angle.radians), 
+							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(gears[i].angle.radians)
 						);
 						posX = 800;
-						gears[i].rotation = 90;
 					}else {
 						gears[i].posFinal = new Point(
-							gears[i - 1].posFinal.x - (gears[i - 1].raio + gears[i].raio) * Math.cos(angle.radians), 
-							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(angle.radians)
+							gears[i - 1].posFinal.x + (gears[i - 1].raio + gears[i].raio) * Math.cos(gears[i].angle.radians), 
+							gears[i - 1].posFinal.y + (gears[i - 1].raio + gears[i].raio) * Math.sin(gears[i].angle.radians)
 						);
 						posX = -100;
-						gears[i].rotation = -90;
 					}
-					posY = (angle.degrees < 0 ? 0 : 500);
-					setInicialAngle(gears[i - 1], angle.degrees, gears[i], i);
+					posY = (gears[i - 1].angle.degrees < 0 ? 0 : 500);
 				}
 				
 				gears[i].posInicial = new Point(posX, posY);
@@ -246,31 +249,6 @@ package
 				else Actuate.tween(gears[i], 0.5, { x: gears[i].posFinal.x, y: gears[i].posFinal.y } ).ease(Cubic.easeOut).delay(delay);
 				delay += 0.1;
 			}
-		}
-		
-		private function setInicialAngle(gearAnt:Gear, angle:Number, gearToRotate:Gear, indice:int):void 
-		{
-			gearToRotate.rotacaoInicial = 180 + (gearToRotate.delta / 2) + (angle - gearAnt.rotacaoInicial) * (gearAnt.nDentes / gearToRotate.nDentes) - angle * (gearAnt.nDentes / gearToRotate.nDentes);
-			
-			trace(indice + "\t" + gearAnt.nDentes + "\t" + gearAnt.delta + "\t" + gearAnt.rotacaoInicial + "\t" + angle + "\t" + gearToRotate.nDentes + "\t" + gearToRotate.delta + "\t" + gearToRotate.rotacaoInicial);
-			
-			/*
-			var a:Number = 90 - gearAnt.rotacaoInicial;
-			while ( a > 0) {
-				a -= gearAnt.delta;
-			}
-			var diffA:Number = Math.abs(a) / gearAnt.delta;
-			
-			var b:Number = 90;
-			while (b < 180) {
-				b += gearToRotate.delta;
-			}
-			
-			var diffB:Number = (b - 180)
-			
-			var diff:Number = Math.abs(a) - (b - 180);
-			gearToRotate.rotacaoInicial = -diff// - (gearToRotate.delta / 2);
-			*/
 		}
 		
 		private function animatedExit():void
@@ -498,8 +476,10 @@ package
 			ind.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
 			ind.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
 			
-			for (var i:int = 0; i < gears.length - 1; i++) 
+			tutoLoop: for (var i:int = 0; i < gears.length - 1; i++) 
 			{
+				if (gears[i] == sortedGear) break tutoLoop;
+				
 				var tutoArrow:TutorialArrow = new TutorialArrow();
 				tutoArrow.label = String(i + 2);
 				

@@ -16,6 +16,7 @@ package
 		private var _omega:Number = 0;
 		private var _rotacao:Angle = new Angle();
 		private var _rotacaoInicial:Angle = new Angle();
+		public var angle:Angle = new Angle();
 		
 		public var posFinal:Point;
 		public var posInicial:Point;
@@ -106,6 +107,7 @@ package
 		{
 			return 360 / _nDentes;
 		}
+		
 		
 	}
 
