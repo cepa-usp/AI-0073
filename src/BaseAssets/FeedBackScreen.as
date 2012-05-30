@@ -42,7 +42,8 @@ package BaseAssets
 		private function closeScreen(e:MouseEvent):void 
 		{
 			this.play();
-			if(okCancelMode) dispatchEvent(new Event(Event.CLOSE, true));
+			if (okCancelMode) dispatchEvent(new Event(Event.CLOSE, true));
+			else dispatchEvent(new Event("FEEDBACK_CLOSED", true));
 		}
 		
 		private function openScreen():void

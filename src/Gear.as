@@ -35,6 +35,16 @@ package
 			_rotacaoInicial.domain = Angle.MINUS_PI_TO_PLUS_PI;
 		}
 		
+		public function setIndicador():void
+		{
+			var ind:IndicadorRoda = new IndicadorRoda();
+			ind.x = -_raio / 1.3 - ind.height;
+			ind.y = 0;
+			ind.rotation = 90;
+			addChild(ind);
+			setChildIndex(ind, 0);
+		}
+		
 		public function update(time:Number):void
 		{
 			_rotacao.radians = time * omega + _rotacaoInicial.radians;

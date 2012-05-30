@@ -10,12 +10,14 @@ package
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
+	import flash.ui.Keyboard;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
@@ -71,12 +73,9 @@ package
 			if (ExternalInterface.available) {
 				initLMSConnection();
 				
-				if (!completed) iniciaTutorial();
 				if (mementoSerialized != null) {
 					if(mementoSerialized != "" && mementoSerialized != "null") recoverStatus();
 				}
-			}else {
-				iniciaTutorial();
 			}
 		}
 		
@@ -167,6 +166,7 @@ package
 					//bGear.omega = 0.1;
 					bGear.rotacaoInicial = 0;
 					gears.push(bGear);
+					bGear.setIndicador();
 				}else {//sorteia raios(s) pequeno(s)
 					nSort = Math.floor(Math.random() * nDentesSmall.length);
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
@@ -178,7 +178,7 @@ package
 						sortedGear = sGear;
 						setInfoOut(null);
 						sGear.filters = [RED_FILTER];
-						//trace(sortedGear.omega);
+						trace(sortedGear.omega * -1);
 					}
 				}
 				
@@ -265,6 +265,10 @@ package
 		
 		private function startAnimation():void
 		{
+			if (!completed && !tutorialExibido) {
+				tutorialExibido = true;
+				iniciaTutorial();
+			}
 			cronometerGear.start();
 			stage.addEventListener(Event.ENTER_FRAME, updateGears);
 		}
@@ -290,7 +294,7 @@ package
 			cronometro.reset.buttonMode = true;
 			cronometro.start.buttonMode = true;
 			
-			cronometro.start.addEventListener(MouseEvent.CLICK, startCronometro);
+			cronometro.start.addEventListener(MouseEvent.MOUSE_DOWN, startCronometro);
 			cronometro.reset.addEventListener(MouseEvent.CLICK, resetaCronometro);
 		}
 		
@@ -352,7 +356,7 @@ package
 					else setInfoMsg("Inicia o cronômetro.");
 					break;
 				case "Reset":
-					setInfoMsg("Reinicia o cronômetro.");
+					setInfoMsg("Zera o cronômetro.");
 					break;
 				case "Btn_info":
 					setInfoMsg("Inicia tutorial.");
@@ -370,7 +374,10 @@ package
 					setInfoMsg("Abrir tela de desempenho.");
 					break;
 				case "Gear":
-					setInfoMsg("Engrenagem de raio " + Gear(e.target).raio.toFixed(2) + " unidades de comprimento.");
+					setInfoMsg("Roda de raio " + Gear(e.target).raio.toFixed(2) + " unidades de comprimento (" + Gear(e.target).nDentes + " dentes).");
+					break;
+				case "TutorialArrow":
+					setInfoMsg("Velocidade linear.");
 					break;
 				
 				default:
@@ -384,7 +391,7 @@ package
 		
 		private function setInfoOut(e:MouseEvent):void 
 		{
-			setInfoMsg("Qual é a velocidade angular na engrenagem azul?");
+			setInfoMsg("Qual é a velocidade angular na roda azul?");
 		}
 		
 		private function setInfoMsg(msg:String):void
@@ -400,6 +407,15 @@ package
 			feedbackScreen.addEventListener(Event.CLOSE, fazValer);
 			btValendoNota.addEventListener(MouseEvent.CLICK, openValendoNotaScreen);
 			reiniciar.addEventListener(MouseEvent.CLICK, reset);
+			
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownListener);
+		}
+		
+		private function keyDownListener(e:KeyboardEvent):void 
+		{
+			if (e.keyCode == Keyboard.SPACE) {
+				startCronometro(null);
+			}
 		}
 		
 		private function answerExercise(e:MouseEvent):void 
@@ -409,7 +425,7 @@ package
 			else if(isNaN(Number(resposta.text.replace(",", ".")))) feedbackScreen.setText("Você precisa digitar um número válido para ser avaliado.");
 			else {
 				var resp:Number = Number(resposta.text.replace(",", "."));
-				var currentScore = getScore(resp);
+				var currentScore:Number = getScore(resp);
 				
 				stats.nTotal += 1;
 				
@@ -422,13 +438,18 @@ package
 				
 				stats.scoreTotal = ((stats.scoreTotal * (stats.nTotal - 1) + currentScore) / stats.nTotal).toFixed(0);
 				
-				if (currentScore > 99) {
+				if (currentScore >= 99.5) {
 					initSolveTutorial(false);
 					feedbackScreen.setText("Parabéns, você acertou.\nClique em \"reset\" para um novo exercício.");
-				}
-				else {
+				}else if (currentScore >= 60) {
+					initSolveTutorial(false);
+					feedbackScreen.setText("Você quase acertou. Deve ter medido o tempo um pouco errado. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%. Pressione \"ok\" para ver como chegar à resposta.");
+				}else if(currentScore > 0 && currentScore < 60) {
 					initSolveTutorial(true);
-					feedbackScreen.setText("Ops... parece que seus cálculos não estão corretos.\nClique em \"reset\" para um novo exercício.");
+					feedbackScreen.setText("Você deve ter errado na medida do tempo. Procure medir o tempo de uma volta mais de uma vez para ter certeza. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%. Pressione \"ok\" para ver como chegar à resposta.");
+				}else {
+					initSolveTutorial(true);
+					feedbackScreen.setText("Ops!... parece que seus cálculos não estão corretos. Pressione \"ok\" para ver como chegar à resposta.");
 				}
 				
 				//btAnswer.mouseEnabled = false;
@@ -471,8 +492,16 @@ package
 		{
 			var score:Number;
 			
-			if (Math.abs((sortedGear.omega * -1) - resp) < 0.1) score = 100;
-			else score = 0;
+			var omega_usuário:Number = resp;
+			var omega_certo:Number = (sortedGear.omega * -1);
+			var z_maior:Number = gears[0].nDentes;
+			var z_azul:Number = sortedGear.nDentes;
+			var omega_maior:Number = gears[0].omega * -1;
+			var erro_tempo:Number =  0.05;
+			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 * Math.PI;
+			
+			score = Math.max(0, 100 - 100 * Math.abs(omega_usuário - omega_certo) / erro_maximo_em_omega);
+			trace(score);
 			
 			return score;
 		}
@@ -515,7 +544,7 @@ package
 				tutoArrow.rotation = (gears[i - 1].omega > 0 ? angle.degrees + 90 : angle.degrees - 90);
 				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OVER, overTutoArrow, false, 0, true);
 				tutoArrow.labelField.addEventListener(MouseEvent.MOUSE_OUT, outTutoArrow, false, 0, true);
-				tutoArrow.arrowText = "A velocidade LINEAR das rodas <em>a</em> e <em>b</em> neste ponto é a mesma, de modo que ω<font size='8'>a</font> r<font size='8'>a</font> = ω<font size='8'>b</font> r<font size='8'>b</font>.\nDaí resulta ω<font size='8'>a</font> = " + gears[i].omega.toFixed(2).replace(".", ",") + " rad/s.";
+				tutoArrow.arrowText = "A velocidade LINEAR das rodas 1 e 2 neste ponto são iguais (" + Math.abs(gears[i].omega * gears[i].raio).toFixed(2).replace(".", ",") + " unidades de comprimento por segundo), de modo que ω<font size='8'>1</font> r<font size='8'>1</font> = ω<font size='8'>2</font> r<font size='8'>2</font>. Daí resulta ω<font size='8'>2</font> = " + (gears[i].omega * -1).toFixed(2).replace(".", ",") + " rad/s.";
 				
 				if (gears[i] == sortedGear) break tutoLoop;
 			}
@@ -543,7 +572,7 @@ package
 			
 			if (e.target.parent is TutorialArrow) answerTuto.setText(TutorialArrow(e.target.parent).arrowText, verticalAlign, horizontalAlign);
 			else {
-				var txt:String = "Meça o tempo t gasto pela roda maior para dar uma volta e calcule a velocidade angular dela: ω = 2π/t = " + String(gears[0].omega).replace(".", ",") + " rad/s.\nEm seguida, sabendo o raio r da roda, calcule a velocidade linear: v = ωr.";
+				var txt:String = "Meça o tempo t gasto pela roda maior para dar uma volta e calcule a velocidade angular dela: ω = 2π / t = " + String(gears[0].omega * -1).replace(".", ",") + " rad/s.Em seguida, sabendo o raio r da roda, calcule a velocidade linear: v = ωr.";
 				answerTuto.setText(txt, verticalAlign, horizontalAlign);
 			}
 			answerTuto.setPosition(pos.x, pos.y);
@@ -586,9 +615,100 @@ package
 			TextField(resposta).text = "";
 		}
 		
-		override public function iniciaTutorial(e:MouseEvent = null):void
+		
+		//---------------- Tutorial -----------------------
+		
+		private var tutorialExibido:Boolean = false;
+		private var gearPos:Point = new Point();
+		private var balao:CaixaTexto;
+		private var pointsTuto:Array;
+		private var tutoBaloonPos:Array;
+		private var tutoPos:int;
+		private var tutoSequence:Array = ["Qual é a velocidade angular da roda azul?", 
+										  "Passe o mouse sobre uma roda para ver o raio dela.",
+										  "Pressione para iniciar/parar o cronômetro (você também pode usar a barra de espaço para isso).",
+										  "Pressione para zerar o cronômetro.",
+										  "Digite aqui a velocidade angular da roda azul. ATENÇÃO para o sentido da rotação.",
+										  "Pressione \"terminei\" para verificar sua resposta.",
+										  "Pressione quando você estiver pronto(a) para ser avaliado(a).",
+										  "Veja aqui o seu desempenho.",
+										  "Pressione para começar um novo exercício."];
+		
+		
+		override public function iniciaTutorial(e:MouseEvent = null):void  
 		{
+			tutoPos = 0;
+			if(balao == null){
+				balao = new CaixaTexto(true);
+				addChild(balao);
+				balao.visible = false;
+				
+				pointsTuto = 	[new Point(infoBar.x + 50, infoBar.y),
+								gearPos,
+								new Point(577, 74),
+								new Point(638, 58),
+								new Point(113, 54),
+								new Point(61, 83),
+								new Point(165, 83),
+								new Point(655, 325),
+								new Point(61, 83)];
+								
+				tutoBaloonPos = [[CaixaTexto.BOTTON, CaixaTexto.FIRST],
+								[CaixaTexto.TOP, CaixaTexto.CENTER],
+								[CaixaTexto.RIGHT, CaixaTexto.CENTER],
+								[CaixaTexto.RIGHT, CaixaTexto.FIRST],
+								[CaixaTexto.TOP, CaixaTexto.FIRST],
+								[CaixaTexto.TOP, CaixaTexto.FIRST],
+								[CaixaTexto.TOP, CaixaTexto.CENTER],
+								[CaixaTexto.RIGHT, CaixaTexto.CENTER],
+								[CaixaTexto.TOP, CaixaTexto.FIRST]];
+			}
+			updateParametersBalao();
+			balao.removeEventListener(Event.CLOSE, closeBalao);
 			
+			balao.setText(tutoSequence[tutoPos], tutoBaloonPos[tutoPos][0], tutoBaloonPos[tutoPos][1]);
+			balao.setPosition(pointsTuto[tutoPos].x, pointsTuto[tutoPos].y);
+			balao.addEventListener(Event.CLOSE, closeBalao);
+			balao.visible = true;
+		}
+		
+		private function updateParametersBalao():void {
+			gearPos.x = gears[1].posFinal.x;
+			if (gears[1].posFinal.y > stage.stageHeight / 2) {
+				gearPos.y = gears[1].posFinal.y - gears[1].raio;
+				tutoBaloonPos[1][0] = CaixaTexto.BOTTON;
+			}
+			else {
+				gearPos.y = gears[1].posFinal.y + gears[1].raio;
+				tutoBaloonPos[1][0] = CaixaTexto.TOP;
+			}
+		}
+		
+		private function closeBalao(e:Event):void 
+		{
+			updateParametersBalao();
+			tutoPos++;
+			if (tutoPos >= tutoSequence.length) {
+				balao.removeEventListener(Event.CLOSE, closeBalao);
+				balao.visible = false;
+			}else if (tutoPos == tutoSequence.length - 1 && reiniciar.visible == false) {
+				balao.removeEventListener(Event.CLOSE, closeBalao);
+				balao.visible = false;
+				feedbackScreen.addEventListener("FEEDBACK_CLOSED", iniciaSegundoTuto);
+			}else {
+				balao.setText(tutoSequence[tutoPos], tutoBaloonPos[tutoPos][0], tutoBaloonPos[tutoPos][1]);
+				balao.setPosition(pointsTuto[tutoPos].x, pointsTuto[tutoPos].y);
+			}
+		}
+		
+		private function iniciaSegundoTuto(e:Event):void 
+		{
+			if(reiniciar.visible){
+				feedbackScreen.removeEventListener("FEEDBACK_CLOSED", iniciaSegundoTuto);
+				balao.addEventListener(Event.CLOSE, closeBalao);
+				balao.setText(tutoSequence[tutoPos], tutoBaloonPos[tutoPos][0], tutoBaloonPos[tutoPos][1]);
+				balao.setPosition(pointsTuto[tutoPos].x, pointsTuto[tutoPos].y);
+			}
 		}
 		
 		
