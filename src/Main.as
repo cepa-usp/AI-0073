@@ -438,18 +438,22 @@ package
 				
 				stats.scoreTotal = ((stats.scoreTotal * (stats.nTotal - 1) + currentScore) / stats.nTotal).toFixed(0);
 				
-				if (currentScore >= 99.5) {
+				if (currentScore >= 90) {
 					initSolveTutorial(false);
-					feedbackScreen.setText("Parabéns, você acertou.\nClique em \"reset\" para um novo exercício.");
+					feedbackScreen.setText("Parabéns, você acertou. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%.");
 				}else if (currentScore >= 60) {
 					initSolveTutorial(false);
-					feedbackScreen.setText("Você quase acertou. Deve ter medido o tempo um pouco errado. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%. Pressione \"ok\" para ver como chegar à resposta.");
-				}else if(currentScore > 0 && currentScore < 60) {
+					feedbackScreen.setText("Chegou perto. Deve ter medido o tempo um pouco errado. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%.");
+				}else if(currentScore > 0) {
 					initSolveTutorial(true);
-					feedbackScreen.setText("Você deve ter errado na medida do tempo. Procure medir o tempo de uma volta mais de uma vez para ter certeza. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%. Pressione \"ok\" para ver como chegar à resposta.");
+					feedbackScreen.setText("Você deve ter errado na medida do tempo. Procure medir o tempo de uma volta mais de uma vez para ter certeza. Sua pontuação foi de " + currentScore.toFixed(0).replace(".", "") + "%.");
 				}else {
 					initSolveTutorial(true);
-					feedbackScreen.setText("Ops!... parece que seus cálculos não estão corretos. Pressione \"ok\" para ver como chegar à resposta.");
+					if (getScore(-resp) >= 90) {
+						feedbackScreen.setText("Ops!... atenção ao sinal da velocidade angular. Sua pontuação foi de 0%.");
+					}else {
+						feedbackScreen.setText("Ops!... alguma coisa está errada. Sua pontuação foi de 0%.");
+					}
 				}
 				
 				//btAnswer.mouseEnabled = false;
@@ -501,7 +505,6 @@ package
 			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 * Math.PI;
 			
 			score = Math.max(0, 100 - 100 * Math.abs(omega_usuário - omega_certo) / erro_maximo_em_omega);
-			trace(score);
 			
 			return score;
 		}
