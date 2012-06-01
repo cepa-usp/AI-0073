@@ -118,6 +118,16 @@ package
 			return 360 / _nDentes;
 		}
 		
+		public function eraseMark():void
+		{
+			for (var i:int = 0; i < gearSpr.numChildren; i++) 
+			{
+				if (gearSpr.getChildAt(i) is IndicadorRoda) {
+					gearSpr.getChildAt(i).visible = false;
+					return;
+				}
+			}
+		}
 		
 	}
 

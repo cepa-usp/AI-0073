@@ -43,7 +43,7 @@ package
 		
 		private var gears:Vector.<Gear>;
 		private var nGears:int;
-		private var maxGears:int = 6;
+		private var maxGears:int = 5;
 		private var minGears:int = 2;
 		
 		private var menorRaio:Number = 84.5 * 1.3;
@@ -53,6 +53,8 @@ package
 		private var goalScore:Number = 50;
 		
 		private var answerTuto:CaixaTexto;
+		
+		private var debugMode:Boolean = false;
 		
 		public function Main() 
 		{
@@ -167,6 +169,8 @@ package
 					bGear.rotacaoInicial = 0;
 					gears.push(bGear);
 					bGear.setIndicador();
+					
+					if(debugMode) resp2.text = "Velocidade angular maior roda: " + (bGear.omega * -1);
 				}else {//sorteia raios(s) pequeno(s)
 					nSort = Math.floor(Math.random() * nDentesSmall.length);
 					var sGear:Gear = new Gear(nDentesSmall[nSort], getRaio(nDentesSmall[nSort]), new (getDefinitionByName("Gear" + String(nDentesSmall[nSort]))));
@@ -178,7 +182,17 @@ package
 						sortedGear = sGear;
 						setInfoOut(null);
 						sGear.filters = [RED_FILTER];
-						trace(sortedGear.omega * -1);
+						//trace(sortedGear.omega * -1);
+						sortedGear.eraseMark();
+						if (debugMode){
+							var omega_certo:Number = (sortedGear.omega * -1);
+							var z_maior:Number = gears[0].nDentes;
+							var z_azul:Number = sortedGear.nDentes;
+							var omega_maior:Number = gears[0].omega * -1;
+							var erro_tempo:Number =  0.05;
+							var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 / Math.PI;
+							resp.text = "= " + (sortedGear.omega * -1).toFixed(5) + "\nErro max = " + erro_maximo_em_omega.toFixed(5);
+						}
 					}
 				}
 				
@@ -193,6 +207,7 @@ package
 				gearsLayer.addChild(gears[gears.length - 1]);
 				
 			}
+			
 			animatedEntrance();
 		}
 		
@@ -502,7 +517,7 @@ package
 			var z_azul:Number = sortedGear.nDentes;
 			var omega_maior:Number = gears[0].omega * -1;
 			var erro_tempo:Number =  0.05;
-			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 * Math.PI;
+			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 / Math.PI;
 			
 			score = Math.max(0, 100 - 100 * Math.abs(omega_usuário - omega_certo) / erro_maximo_em_omega);
 			
@@ -632,7 +647,7 @@ package
 										  "Pressione para iniciar/parar o cronômetro (você também pode usar a barra de espaço para isso).",
 										  "Pressione para zerar o cronômetro.",
 										  "Digite aqui a velocidade angular da roda azul. ATENÇÃO para o sentido da rotação.",
-										  "Pressione \"terminei\" para verificar sua resposta.",
+										  "Pressione \"ok\" para verificar sua resposta.",
 										  "Pressione quando você estiver pronto(a) para ser avaliado(a).",
 										  "Veja aqui o seu desempenho.",
 										  "Pressione para começar um novo exercício."];
@@ -650,8 +665,8 @@ package
 								gearPos,
 								new Point(577, 74),
 								new Point(638, 58),
-								new Point(113, 54),
-								new Point(61, 83),
+								new Point(115, 54),
+								new Point(62, 83),
 								new Point(165, 83),
 								new Point(655, 325),
 								new Point(61, 83)];
