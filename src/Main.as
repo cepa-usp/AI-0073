@@ -509,9 +509,7 @@ package
 		
 		private function getScore(resp:Number):Number 
 		{
-			var score:Number;
-			
-			var omega_usuário:Number = resp;
+			var omega_usuario:Number = resp;
 			var omega_certo:Number = (sortedGear.omega * -1);
 			var z_maior:Number = gears[0].nDentes;
 			var z_azul:Number = sortedGear.nDentes;
@@ -519,9 +517,13 @@ package
 			var erro_tempo:Number =  0.15;
 			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 / Math.PI;
 			
-			score = Math.max(0, 100 - 100 * Math.abs(omega_usuário - omega_certo) / erro_maximo_em_omega);
+			var erro:Number = Math.abs(omega_certo - omega_usuario);
 			
-			return score;
+			var score:Number = 100 - 100 / (4 / 5 * erro_maximo_em_omega) * (erro - erro_maximo_em_omega / 5);
+			
+			var bScore:Number = Math.max(0, Math.min(score, 100));
+			
+			return bScore;
 		}
 		
 		private var tutorialArrows:Vector.<TutorialArrow> = new Vector.<TutorialArrow>();
