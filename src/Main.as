@@ -189,7 +189,7 @@ package
 							var z_maior:Number = gears[0].nDentes;
 							var z_azul:Number = sortedGear.nDentes;
 							var omega_maior:Number = gears[0].omega * -1;
-							var erro_tempo:Number =  0.05;
+							var erro_tempo:Number =  0.15;
 							var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 / Math.PI;
 							resp.text = "= " + (sortedGear.omega * -1).toFixed(5) + "\nErro max = " + erro_maximo_em_omega.toFixed(5);
 						}
@@ -516,7 +516,7 @@ package
 			var z_maior:Number = gears[0].nDentes;
 			var z_azul:Number = sortedGear.nDentes;
 			var omega_maior:Number = gears[0].omega * -1;
-			var erro_tempo:Number =  0.05;
+			var erro_tempo:Number =  0.15;
 			var erro_maximo_em_omega:Number = z_maior / z_azul * Math.pow(omega_maior, 2) * erro_tempo / 2 / Math.PI;
 			
 			score = Math.max(0, 100 - 100 * Math.abs(omega_usuário - omega_certo) / erro_maximo_em_omega);
