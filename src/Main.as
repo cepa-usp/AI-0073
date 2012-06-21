@@ -894,6 +894,9 @@ package
 			stats.scoreTotal = statsRecover.scoreTotal;
 			stats.scoreValendo = statsRecover.scoreValendo;
 			if (statsRecover.valendo) fazValer();
+			
+			score = stats.scoreValendo;
+			saveStatus();
 		}
 	}
 
