@@ -447,6 +447,7 @@ package
 				if (stats.valendo) {
 					stats.nValendo += 1;
 					stats.scoreValendo = ((stats.scoreValendo * (stats.nValendo - 1) + currentScore) / stats.nValendo).toFixed(0);
+					score = stats.scoreValendo;
 				}else {
 					stats.nNaoValendo += 1;
 				}
